@@ -29,6 +29,9 @@ public class KafkaStreamConfig {
     @Value("${kafka.topic.even-output}")
     private String evenOutTopic;
 
+    @Value("${kafka.topic.odd-output}")
+    private String oddTopic;
+
     @Bean(name= KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kStreamsConfiguration(KafkaProperties kafkaProperties){
         Map<String, Object> config = new HashMap<>();
@@ -44,10 +47,18 @@ public class KafkaStreamConfig {
         KStream<String,Long> kStream = kStreamsBuilder.stream(inputTopic);
         kStream.filter((k,v)-> v%2 ==0)
                 .mapValues(v -> {
-                    System.out.println("Processing :: " + v);
+                    System.out.println("Processing even :: " + v);
                     return v * v;
                 })
                 .to(evenOutTopic);
+
+        kStream.filter((k,v)-> v%2 !=0)
+                .mapValues(v -> {
+                    System.out.println("Processing odd :: " + v);
+                    return 2*v;
+                })
+                .to(oddTopic);
+
         return kStream;
 
     }
